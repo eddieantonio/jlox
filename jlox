@@ -1,0 +1,4 @@
+#!/bin/sh
+
+HERE="$(dirname "$0")"
+java -cp "$HERE/out/production/eddieantonio-jlox" ca.eddieantonio.lox.Main "$@"
