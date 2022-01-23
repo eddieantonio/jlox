@@ -242,5 +242,4 @@ class Scanner {
         String text = source.substring(start, current);
         tokens.add(new Token(type, text, literal, line));
     }
-
 }
