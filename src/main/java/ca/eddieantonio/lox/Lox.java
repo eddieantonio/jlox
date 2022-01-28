@@ -3,7 +3,7 @@ package ca.eddieantonio.lox;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -27,7 +27,7 @@ public class Lox {
 
     private static void runFile(String path) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
-        run(new String(bytes, Charset.forName("UTF-8")));
+        run(new String(bytes, StandardCharsets.UTF_8));
 
         if (hadError) {
             System.exit(EXIT_ERROR);
