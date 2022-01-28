@@ -1,0 +1,13 @@
+// How to build jlox.
+//
+// A gradle build file cobbled together by eddieantonio
+
+plugins {
+    id 'application'
+    id 'idea'
+}
+
+// The main class of the project
+application {
+    mainClass = 'ca.eddieantonio.lox.Lox'
+}

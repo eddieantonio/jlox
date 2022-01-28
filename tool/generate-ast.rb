@@ -1,5 +1,10 @@
 #!/usr/bin/env ruby
 
+# Generates a Java file of AST classes and its corresponding Visitor pattern
+# interface.
+#
+# The AST classes are defined in @types.
+
 if ARGV.empty?
   STDERR.puts "Usage: generate-ast [output-dir]"
   exit(64)

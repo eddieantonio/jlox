@@ -1,5 +1,7 @@
-# Compiled output
-out/
-
-# IDE
+# IntelliJ
 .idea/
+
+# Gradle + Build System
+build/
+.gradle
+out/
