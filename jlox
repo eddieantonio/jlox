@@ -1,4 +1,5 @@
 #!/bin/sh
 
 HERE="$(dirname "$0")"
-java -cp "$HERE/out/production/eddieantonio-jlox" ca.eddieantonio.lox.Lox "$@"
+CLASSES="$HERE/build/classes/java/main"
+java -cp "$CLASSES" ca.eddieantonio.lox.Lox "$@"
