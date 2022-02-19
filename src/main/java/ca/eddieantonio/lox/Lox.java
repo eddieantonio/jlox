@@ -9,10 +9,13 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Lox {
+    private static final Interpreter interpreter = new Interpreter();
     private static final int EXIT_USAGE = 64;
     private static final int EXIT_ERROR = 65;
+    private static final int EXIT_RUNTIME_ERROR = 70;
 
     private static boolean hadError = false;
+    private static boolean hadRuntimeError = false;
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
@@ -32,6 +35,9 @@ public class Lox {
         if (hadError) {
             System.exit(EXIT_ERROR);
         }
+        if (hadRuntimeError) {
+            System.exit(EXIT_RUNTIME_ERROR);
+        }
     }
 
     private static void runPrompt() throws IOException {
@@ -46,6 +52,7 @@ public class Lox {
             run(line);
             // Reset error status for the next line.
             hadError = false;
+            hadRuntimeError = false;
         }
     }
 
@@ -59,8 +66,8 @@ public class Lox {
         // Stop if there were any errors during lexing/parsing.
         if (hadError) return;
 
-        // For now, just print the AST.
-        System.out.println(new AstPrinter().print(expression));
+        // Yay, interpret it!
+        interpreter.interpret(expression);
     }
 
     static void error(int line, String message) {
@@ -86,5 +93,11 @@ public class Lox {
                 "[line " + line + "] Error" + where + ": " + message
         );
         hadError = true;
+    }
+
+    public static void runtimeError(RuntimeError error) {
+        System.err.println(error.getMessage()
+                + "\n[line " + error.token.line + "]");
+        hadRuntimeError = true;
     }
 }
