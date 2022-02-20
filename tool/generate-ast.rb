@@ -15,8 +15,9 @@ end
 ASTGenerator.define do |generator|
   generator.base_name = "Expr"
   generator.types ={
-    "Unary"    => ["Token operator", "Expr right"],
+    "Assign"   => ["Token name", "Expr value"],
     "Binary"   => ["Expr left", "Token operator", "Expr right"],
+    "Unary"    => ["Token operator", "Expr right"],
     "Grouping" => ["Expr expression"],
     "Literal"  => ["Object value"],
     "Variable" => ["Token name"],
