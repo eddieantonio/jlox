@@ -4,8 +4,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
+    static class BoundVariable {
+        final private Object value;
+
+        BoundVariable(Object value) {
+            this.value = value;
+        }
+
+        Object get() {
+            return value;
+        }
+    }
+
     final Environment enclosing;
-    private final Map<String, Object> values = new HashMap<>();
+    private final Map<String, BoundVariable> values = new HashMap<>();
 
     Environment() {
         enclosing = null;
@@ -17,7 +29,7 @@ public class Environment {
 
     Object get(Token name) {
         if (values.containsKey(name.lexeme)) {
-            return values.get(name.lexeme);
+            return values.get(name.lexeme).get();
         }
 
         if (this.enclosing != null) return this.enclosing.get(name);
@@ -26,12 +38,12 @@ public class Environment {
     }
 
     void define(String name, Object value) {
-        values.put(name, value);
+        values.put(name, new BoundVariable(value));
     }
 
     public void assign(Token name, Object value) {
         if (values.containsKey(name.lexeme)) {
-            values.put(name.lexeme, value);
+            values.put(name.lexeme, new BoundVariable(value));
             return;
         }
 
