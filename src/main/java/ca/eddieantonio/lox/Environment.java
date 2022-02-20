@@ -5,7 +5,13 @@ import java.util.Map;
 
 public class Environment {
     interface Variable{
-        Object get();
+        Object get(Token where);
+    }
+
+    static class UnboundVariable implements Variable {
+        public Object get(Token where) {
+            throw new RuntimeError(where, "tried to use unbound variable '" + where.lexeme + "'");
+        }
     }
 
     static class BoundVariable implements Variable {
@@ -15,7 +21,7 @@ public class Environment {
             this.value = value;
         }
 
-        public Object get() {
+        public Object get(Token where) {
             return value;
         }
     }
@@ -33,12 +39,16 @@ public class Environment {
 
     Object get(Token name) {
         if (values.containsKey(name.lexeme)) {
-            return values.get(name.lexeme).get();
+            return values.get(name.lexeme).get(name);
         }
 
         if (this.enclosing != null) return this.enclosing.get(name);
 
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+    }
+
+    void define(String name) {
+        values.put(name, new UnboundVariable());
     }
 
     void define(String name, Object value) {
