@@ -28,6 +28,24 @@ public class Lox {
         }
     }
 
+    static abstract class ExecutionStyle<T> {
+        abstract T useParser(Parser parser);
+        abstract void useResult(T result);
+        void run(String source) {
+            Scanner scanner = new Scanner(source);
+            List<Token> tokens = scanner.scanTokens();
+
+            Parser parser = new Parser(tokens);
+            T result = useParser(parser);
+
+            // Stop if there were any errors during lexing/parsing.
+            if (hadError) return;
+
+            // Yay, interpret it!
+            useResult(result);
+        }
+    }
+
     private static void runFile(String path) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
         run(new String(bytes, StandardCharsets.UTF_8));
@@ -57,17 +75,19 @@ public class Lox {
     }
 
     private static void run(String source) {
-        Scanner scanner = new Scanner(source);
-        List<Token> tokens = scanner.scanTokens();
+        ExecutionStyle<List<Stmt>> program = new ExecutionStyle<>() {
+            @Override
+            public List<Stmt> useParser(Parser parser) {
+                return parser.parse();
+            }
 
-        Parser parser = new Parser(tokens);
-        List<Stmt> statements = parser.parse();
+            @Override
+            public void useResult(List <Stmt> statements) {
+                interpreter.interpret(statements);
+            }
+        };
 
-        // Stop if there were any errors during lexing/parsing.
-        if (hadError) return;
-
-        // Yay, interpret it!
-        interpreter.interpret(statements);
+        program.run(source);
     }
 
     static void error(int line, String message) {
