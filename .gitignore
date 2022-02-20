@@ -9,3 +9,6 @@ src/main/java/ca/eddieantonio/lox/Stmt.java
 build/
 .gradle
 out/
+
+# Any loose .lox files in the root directory -- I use these for testing
+/*.lox
