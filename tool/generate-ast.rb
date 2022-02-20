@@ -27,8 +27,9 @@ end
 ASTGenerator.define do |generator|
   generator.base_name = "Stmt"
   generator.types ={
-    "Print"      => ["Expr expression"],
+    "Block"      => ["List<Stmt> statements"],
     "Expression" => ["Expr expression"],
+    "Print"      => ["Expr expression"],
     "Var"        => ["Token name", "Expr initializer"],
   }
 end

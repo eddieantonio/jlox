@@ -38,6 +38,7 @@ public class Parser {
 
     private Stmt statement() {
         if (match(PRINT)) return printStatement();
+        if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
     }
@@ -47,6 +48,18 @@ public class Parser {
         // TODO[error]: better error message.
         consume(SEMICOLON, "Expect ';' after print expressions.");
         return new Stmt.Print(value);
+    }
+
+    private List<Stmt> block() {
+        List <Stmt> statements = new ArrayList<>();
+
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        // TODO[error]: better error message: mismatched delimiters!
+        consume(RIGHT_BRACE, "expected '}' to end block");
+        return statements;
     }
 
     private Stmt varDeclaration() {

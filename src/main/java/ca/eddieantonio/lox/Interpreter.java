@@ -19,8 +19,27 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         statement.accept(this);
     }
 
+    private void executeBlock(List<Stmt> statements, Environment scope) {
+        Environment previous = environment;
+        try {
+            this.environment = new Environment(environment);
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            assert environment.enclosing == previous;
+            environment = previous;
+        }
+    }
+
     private Object evaluate(Expr expr) {
         return expr.accept(this);
+    }
+
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
     }
 
     @Override
