@@ -1,5 +1,6 @@
 package ca.eddieantonio.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 import static ca.eddieantonio.lox.TokenType.*;
 
@@ -14,12 +15,33 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    Expr parse() {
-        try {
-            return expression();
-        } catch (ParseError error) {
-            return null;
+    List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!isAtEnd()) {
+            statements.add(statement());
         }
+
+        return statements;
+    }
+
+    private Stmt statement() {
+        if (match(PRINT)) return printStatement();
+
+        return expressionStatement();
+    }
+
+    private Stmt printStatement() {
+        Expr value = expression();
+        // TODO[error]: better error message.
+        consume(SEMICOLON, "Expect ';' after print expressions.");
+        return new Stmt.Print(value);
+    }
+
+    private Stmt expressionStatement() {
+        Expr value = expression();
+        consume(SEMICOLON, "Expect ';' after print expressions.");
+        return new Stmt.Expression(value);
     }
 
     private Expr expression() {
