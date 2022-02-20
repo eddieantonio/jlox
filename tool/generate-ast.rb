@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative './ast-generator.rb'
+require_relative './libastgen.rb'
 
 # Generates a Java file of AST classes and its corresponding Visitor pattern
 # interface.
