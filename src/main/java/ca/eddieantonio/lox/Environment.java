@@ -4,20 +4,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
-    static class BoundVariable {
+    interface Variable{
+        Object get();
+    }
+
+    static class BoundVariable implements Variable {
         final private Object value;
 
         BoundVariable(Object value) {
             this.value = value;
         }
 
-        Object get() {
+        public Object get() {
             return value;
         }
     }
 
     final Environment enclosing;
-    private final Map<String, BoundVariable> values = new HashMap<>();
+    private final Map<String, Variable> values = new HashMap<>();
 
     Environment() {
         enclosing = null;
