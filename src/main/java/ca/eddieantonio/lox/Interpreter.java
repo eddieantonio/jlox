@@ -44,7 +44,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
 
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
-        evaluate(stmt.expression);
+        Lox.setResult(evaluate(stmt.expression));
         return null;
     }
 
@@ -175,7 +175,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         throw new RuntimeError(operator, "Operands must be a number");
     }
 
-    private String stringify(Object object) {
+    public static String stringify(Object object) {
         if (object == null) return "nil";
 
         // Special-case doubles to pretend they're ints 🤪

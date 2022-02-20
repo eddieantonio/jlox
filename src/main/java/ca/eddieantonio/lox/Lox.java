@@ -16,6 +16,7 @@ public class Lox {
 
     private static boolean hadError = false;
     private static boolean hadRuntimeError = false;
+    private static Object lastResult = null;
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
@@ -68,9 +69,15 @@ public class Lox {
             if (line == null) break;
 
             run(line);
+
+            if (lastResult != null) {
+                System.out.println(Interpreter.stringify(lastResult));
+            }
+
             // Reset error status for the next line.
             hadError = false;
             hadRuntimeError = false;
+            lastResult = null;
         }
     }
 
@@ -88,6 +95,10 @@ public class Lox {
         };
 
         program.run(source);
+    }
+
+    static void setResult(Object result) {
+        lastResult = result;
     }
 
     static void error(int line, String message) {
