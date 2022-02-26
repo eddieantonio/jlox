@@ -82,7 +82,7 @@ class Scanner {
                 addToken(match('=') ? LESS_EQUAL : LESS);
                 break;
             case '>':
-                addToken(match('>') ? GREATER_EQUAL : GREATER);
+                addToken(match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
                 if (match('/')) {
