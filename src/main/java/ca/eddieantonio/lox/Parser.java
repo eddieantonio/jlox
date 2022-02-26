@@ -10,6 +10,8 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current = 0;
+    /** Keep track whether we're in a loop or not. */
+    private int loopLevel = 0;
 
     Parser(List<Token> tokens) {
         assert tokens.get(tokens.size() -1).type == EOF;
@@ -22,6 +24,7 @@ public class Parser {
         while (!isAtEnd()) {
             statements.add(declaration());
         }
+        assert loopLevel == 0;
 
         return statements;
     }
@@ -51,12 +54,19 @@ public class Parser {
 
     private Stmt breakStatement() {
         Token keyword = previous();
+        if (loopLevel < 1) {
+            Lox.error(keyword, "Found " + keyword.lexeme + " outside of a loop");
+        }
+
         consume(SEMICOLON, "Expected semicolon after 'break'");
         return new Stmt.Control(keyword);
     }
 
     private Stmt continueStatement() {
         Token keyword = previous();
+        if (loopLevel < 1) {
+            Lox.error(keyword, "Found " + keyword.lexeme + " outside of a loop");
+        }
         consume(SEMICOLON, "Expected semicolon after 'continue'");
         return new Stmt.Control(keyword);
     }
@@ -137,7 +147,11 @@ public class Parser {
         Expr condition = expression();
         // TODO[error]: better error message
         consume(RIGHT_PAREN, "Expected ')' after while condition");
+
+        loopLevel += 1;
         Stmt body = statement();
+        loopLevel -= 1;
+        assert loopLevel >= 0;
 
         return new Stmt.While(condition, body);
     }
