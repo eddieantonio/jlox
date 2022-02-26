@@ -35,5 +35,6 @@ ASTGenerator.define do |generator|
                      "Stmt thenBranch", "Stmt elseBranch"],
     "Print"      => ["Expr expression"],
     "While"      => ["Expr condition", "Stmt body"],
+    "Control"    => ["Token keyword"],
   }
 end

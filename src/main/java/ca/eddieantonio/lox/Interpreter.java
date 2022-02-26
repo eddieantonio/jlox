@@ -3,6 +3,9 @@ package ca.eddieantonio.lox;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
+    private class Continue extends RuntimeException {}
+    private class Break extends RuntimeException {}
+
     private Environment environment = new Environment();
 
     void interpret(List<Stmt> statements) {
@@ -79,9 +82,25 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
         while (isTruthy(evaluate(stmt.condition))) {
-            execute(stmt.body);
+            try {
+                execute(stmt.body);
+            } catch (Continue _continue) {
+                // Do nothing.
+            } catch (Break _break) {
+                break;
+            }
         }
         return null;
+    }
+
+    @Override
+    public Void visitControlStmt(Stmt.Control stmt) {
+        if (stmt.keyword.type == TokenType.BREAK) {
+            // gimme a break
+            throw new Break();
+        } else {
+            throw new Continue();
+        }
     }
 
     @Override

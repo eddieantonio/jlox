@@ -38,6 +38,8 @@ public class Parser {
     }
 
     private Stmt statement() {
+        if (match(BREAK)) return breakStatement();
+        if (match(CONTINUE)) return continueStatement();
         if (match(FOR)) return forStatement();
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
@@ -45,6 +47,18 @@ public class Parser {
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
+    }
+
+    private Stmt breakStatement() {
+        Token keyword = previous();
+        consume(SEMICOLON, "Expected semicolon after 'break'");
+        return new Stmt.Control(keyword);
+    }
+
+    private Stmt continueStatement() {
+        Token keyword = previous();
+        consume(SEMICOLON, "Expected semicolon after 'continue'");
+        return new Stmt.Control(keyword);
     }
 
     private Stmt forStatement() {

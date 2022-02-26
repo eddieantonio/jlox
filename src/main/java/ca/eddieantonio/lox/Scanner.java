@@ -21,7 +21,9 @@ class Scanner {
     static {
         keywords = new HashMap<>();
         keywords.put("and", AND);
+        keywords.put("break", BREAK);
         keywords.put("class", CLASS);
+        keywords.put("continue", CONTINUE);
         keywords.put("else", ELSE);
         keywords.put("false", FALSE);
         keywords.put("for", FOR);
@@ -82,7 +84,7 @@ class Scanner {
                 addToken(match('=') ? LESS_EQUAL : LESS);
                 break;
             case '>':
-                addToken(match('>') ? GREATER_EQUAL : GREATER);
+                addToken(match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
                 if (match('/')) {
