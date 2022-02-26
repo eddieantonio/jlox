@@ -6,4 +6,7 @@ java:
 run: java
 	./jlox
 
-.PHONY: all java run
+test: java
+	./jlox example.lox
+
+.PHONY: all java run test
