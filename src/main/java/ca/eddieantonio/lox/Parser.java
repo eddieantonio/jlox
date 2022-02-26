@@ -41,8 +41,7 @@ public class Parser {
     }
 
     private Stmt statement() {
-        if (match(BREAK)) return breakStatement();
-        if (match(CONTINUE)) return continueStatement();
+        if (match(BREAK, CONTINUE)) return controlFlowStatement();
         if (match(FOR)) return forStatement();
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
@@ -52,22 +51,14 @@ public class Parser {
         return expressionStatement();
     }
 
-    private Stmt breakStatement() {
+    private Stmt controlFlowStatement() {
         Token keyword = previous();
+        String token = keyword.lexeme;
         if (loopLevel < 1) {
-            Lox.error(keyword, "Found " + keyword.lexeme + " outside of a loop");
+            Lox.error(keyword, "Found '" + token + "' outside of a loop");
         }
 
-        consume(SEMICOLON, "Expected semicolon after 'break'");
-        return new Stmt.Control(keyword);
-    }
-
-    private Stmt continueStatement() {
-        Token keyword = previous();
-        if (loopLevel < 1) {
-            Lox.error(keyword, "Found " + keyword.lexeme + " outside of a loop");
-        }
-        consume(SEMICOLON, "Expected semicolon after 'continue'");
+        consume(SEMICOLON, "Expected semicolon after '" + token + "'");
         return new Stmt.Control(keyword);
     }
 
