@@ -212,7 +212,22 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
 
     @Override
     public Object visitLambdaExpr(Expr.Lambda expr) {
-        throw new UnsupportedOperationException();
+        return new UserDefinedFunction(environment) {
+            @Override
+            protected List<Stmt> body() {
+                return expr.body;
+            }
+
+            @Override
+            protected List<Token> params() {
+                return expr.params;
+            }
+
+            @Override
+            public String toString() {
+                return "<anonymous function>";
+            }
+        };
     }
 
     @Override
