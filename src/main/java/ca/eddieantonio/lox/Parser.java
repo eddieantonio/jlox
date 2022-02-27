@@ -6,6 +6,9 @@ import java.util.List;
 import static ca.eddieantonio.lox.TokenType.*;
 
 public class Parser {
+    private static final int MAXIMUM_ARGUMENTS = 255;
+    private static final int MAXIMUM_PARAMETERS = MAXIMUM_ARGUMENTS;
+
     private static class ParseError extends RuntimeException {}
 
     private final List<Token> tokens;
@@ -28,6 +31,7 @@ public class Parser {
 
     private Stmt declaration() {
         try {
+            if (match(FUN)) return function("function");
             if (match(VAR)) return varDeclaration();
             return statement();
         } catch (ParseError error) {
@@ -41,6 +45,7 @@ public class Parser {
         if (match(FOR)) return forStatement();
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
+        if (match(RETURN)) return returnStatement();
         if (match(WHILE)) return whileStatement();
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
@@ -117,6 +122,18 @@ public class Parser {
         return new Stmt.Print(value);
     }
 
+    private Stmt returnStatement() {
+        Token keyword = previous();
+        Expr value = null;
+        if (!check(SEMICOLON)) {
+            value = expression();
+        }
+
+        // TODO[error]: better error message.
+        consume(SEMICOLON, "Expect ';' after return.");
+        return new Stmt.Return(keyword, value);
+    }
+
     private Stmt whileStatement() {
         // TODO[error]: better error message
         consume(LEFT_PAREN, "Expected '(' after 'while'");
@@ -156,6 +173,33 @@ public class Parser {
         Expr value = expression();
         consume(SEMICOLON, "Expect ';' after print expressions.");
         return new Stmt.Expression(value);
+    }
+
+    private Stmt.Function function(String kind) {
+        // TODO[error]: better error message:
+        Token name = consume(IDENTIFIER, "Expected " + kind + " name");
+        consume(LEFT_PAREN, "Expected '(' after " + kind + " name");
+        List<Token> parameters = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= MAXIMUM_PARAMETERS) {
+                    error(peek(), "Cannot have more than " + MAXIMUM_PARAMETERS + " parameters");
+                }
+                // TODO[error]: better error message:
+                parameters.add(consume(IDENTIFIER, "Expected parameter name"));
+            } while (match(COMMA));
+        }
+
+        // TODO[error]: better error message:
+        // c.f., Marceau et al. 2011, "Mind Your Language" about parameter vs. argument
+        consume(RIGHT_PAREN, "Expected ')' after parameter list");
+
+        // TODO[error]: better error message:
+        consume(LEFT_BRACE, "Expected '{' before " + kind + " body");
+        List<Stmt> body = block();
+        // TODO[error]: note: block() needs extra context to produce a better error message.
+
+        return new Stmt.Function(name, parameters, body);
     }
 
     private Expr expression() {
@@ -280,8 +324,8 @@ public class Parser {
         List<Expr> arguments = new ArrayList<>();
         if (!check(RIGHT_PAREN)) {
             do {
-                if (arguments.size() >= 255) {
-                    error(peek(), "Can't have more than 255 arguments");
+                if (arguments.size() >= MAXIMUM_ARGUMENTS) {
+                    error(peek(), "Can't have more than " + MAXIMUM_ARGUMENTS + " arguments");
                 }
                 arguments.add(expression());
             } while (match(COMMA));

@@ -40,16 +40,16 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         statement.accept(this);
     }
 
-    private void executeBlock(List<Stmt> statements, Environment scope) {
-        Environment previous = environment;
+    void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment previous = this.environment;
         try {
-            this.environment = new Environment(environment);
+            this.environment = environment;
             for (Stmt statement : statements) {
                 execute(statement);
             }
         } finally {
             assert environment.enclosing == previous;
-            environment = previous;
+            this.environment = previous;
         }
     }
 
@@ -66,6 +66,13 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitFunctionStmt(Stmt.Function stmt) {
+        LoxFunction function = new LoxFunction(stmt, environment);
+        environment.define(stmt.name.lexeme, function);
         return null;
     }
 
@@ -95,6 +102,14 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
         return null;
+    }
+
+    @Override
+    public Void visitReturnStmt(Stmt.Return stmt) {
+        Object value = null;
+        if (stmt.value != null) value = evaluate(stmt.value);
+
+        throw new Return(value);
     }
 
     @Override
