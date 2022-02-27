@@ -14,7 +14,7 @@ public class LoxFunction implements LoxCallable {
 
     @Override
     public int arity() {
-        return declaration.params.size();
+        return params().size();
     }
 
     @Override
@@ -22,15 +22,23 @@ public class LoxFunction implements LoxCallable {
         Environment environment = new Environment(closure);
         assert arguments.size() == arity();
         for (int i = 0; i < arity(); i++) {
-            environment.define(declaration.params.get(i).lexeme, arguments.get(i));
+            environment.define(params().get(i).lexeme, arguments.get(i));
         }
 
         try {
-            interpreter.executeBlock(declaration.body, environment);
+            interpreter.executeBlock(body(), environment);
         } catch (Return returnValue) {
             return returnValue.value;
         }
         return null;
+    }
+
+    protected List<Stmt> body() {
+        return declaration.body;
+    }
+
+    protected List<Token> params() {
+        return declaration.params;
     }
 
     @Override
