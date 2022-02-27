@@ -1,9 +1,30 @@
 package ca.eddieantonio.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
-    private Environment environment = new Environment();
+    final Environment globals = new Environment();
+    private Environment environment = globals;
+
+    {
+        globals.define("clock", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return (double) System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'clock'>";
+            }
+        });
+    }
 
     void interpret(List<Stmt> statements) {
         try {
@@ -137,6 +158,36 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         }
 
         throw new AssertionError("Should not get here.");
+    }
+
+    @Override
+    public Object visitCallExpr(Expr.Call expr) {
+        Object callee = evaluate(expr.callee);
+
+        List<Object> arguments = new ArrayList<>();
+        for (Expr arg : expr.arguments) {
+            arguments.add(evaluate(arg));
+        }
+
+        if (!(callee instanceof LoxCallable)) {
+            // TODO[error]: better error message
+            // Idea: this is definitely a symptom -- why did the user try to call something that is not callable?
+            throw new RuntimeError(expr.paren, "Can only call functions and classes");
+        }
+
+        LoxCallable function = (LoxCallable) callee;
+        if (arguments.size() != function.arity()) {
+            // TODO[error]: better error message
+            // this is the definition vs. declaration mismatch! Must indicate both areas for user-defined functions.
+            throw new RuntimeError(expr.paren,
+                    "Tried calling a function with "
+                    + arguments.size()
+                    + " arguments, but the function says it wants exactly "
+                    + function.arity()
+                    + " arguments");
+        }
+
+        return function.call(this, arguments);
     }
 
     @Override
