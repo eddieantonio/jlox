@@ -19,6 +19,7 @@ ASTGenerator.define do |generator|
     "Binary"   => ["Expr left", "Token operator", "Expr right"],
     "Call"     => ["Expr callee", "Token paren", "List<Expr> arguments"],
     "Grouping" => ["Expr expression"],
+    "Lambda"   => ["Token keyword", "List<Token> params", "List<Stmt> body"],
     "Literal"  => ["Object value"],
     "Logical"  => ["Expr left", "Token operator", "Expr right"],
     "Unary"    => ["Token operator", "Expr right"],

@@ -31,7 +31,7 @@ public class Parser {
 
     private Stmt declaration() {
         try {
-            if (match(FUN)) return function("function");
+            if (match(FUN)) return functionDeclaration();
             if (match(VAR)) return varDeclaration();
             return statement();
         } catch (ParseError error) {
@@ -157,6 +157,10 @@ public class Parser {
         return statements;
     }
 
+    private Stmt functionDeclaration() {
+        return function("function");
+    }
+
     private Stmt varDeclaration() {
         Token name = consume(IDENTIFIER, "Expect variable name");
 
@@ -178,6 +182,12 @@ public class Parser {
     private Stmt.Function function(String kind) {
         // TODO[error]: better error message:
         Token name = consume(IDENTIFIER, "Expected " + kind + " name");
+        Expr.Lambda fn = getLambda(kind, name);
+
+        return new Stmt.Function(name, fn.params, fn.body);
+    }
+
+    private Expr.Lambda getLambda(String kind, Token name) {
         consume(LEFT_PAREN, "Expected '(' after " + kind + " name");
         List<Token> parameters = new ArrayList<>();
         if (!check(RIGHT_PAREN)) {
@@ -198,8 +208,8 @@ public class Parser {
         consume(LEFT_BRACE, "Expected '{' before " + kind + " body");
         List<Stmt> body = block();
         // TODO[error]: note: block() needs extra context to produce a better error message.
-
-        return new Stmt.Function(name, parameters, body);
+        Expr.Lambda fn = new Expr.Lambda(name, parameters, body);
+        return fn;
     }
 
     private Expr expression() {
@@ -307,7 +317,7 @@ public class Parser {
     }
 
     private Expr call() {
-        Expr expr = primary();
+        Expr expr = callable();
 
         while (true) {
             if (match(LEFT_PAREN)) {
@@ -337,6 +347,15 @@ public class Parser {
         return new Expr.Call(callee, paren, arguments);
     }
 
+    private Expr callable() {
+        if (match(FUN)) return anonymousFunction();
+        return primary();
+    }
+
+    private Expr anonymousFunction() {
+        function("anonymous function");
+        throw new UnsupportedOperationException();
+    }
 
     private Expr primary() {
         if (match(FALSE)) return new Expr.Literal(false);

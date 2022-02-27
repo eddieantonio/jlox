@@ -211,6 +211,11 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitLambdaExpr(Expr.Lambda expr) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Object visitLiteralExpr(Expr.Literal expr) {
         return expr.value;
     }
