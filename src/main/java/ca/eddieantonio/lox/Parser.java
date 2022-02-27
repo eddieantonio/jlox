@@ -31,7 +31,7 @@ public class Parser {
 
     private Stmt declaration() {
         try {
-            if (match(FUN)) return functionDeclaration();
+            if (match(FUN)) return functionDeclaration("function");
             if (match(VAR)) return varDeclaration();
             return statement();
         } catch (ParseError error) {
@@ -157,8 +157,12 @@ public class Parser {
         return statements;
     }
 
-    private Stmt functionDeclaration() {
-        return function("function");
+    private Stmt.Function functionDeclaration(String kind) {
+        // TODO[error]: better error message:
+        Token name = consume(IDENTIFIER, "Expected " + kind + " name");
+        Expr.Lambda fn = function(kind, name);
+
+        return new Stmt.Function(name, fn.params, fn.body);
     }
 
     private Stmt varDeclaration() {
@@ -179,15 +183,7 @@ public class Parser {
         return new Stmt.Expression(value);
     }
 
-    private Stmt.Function function(String kind) {
-        // TODO[error]: better error message:
-        Token name = consume(IDENTIFIER, "Expected " + kind + " name");
-        Expr.Lambda fn = getLambda(kind, name);
-
-        return new Stmt.Function(name, fn.params, fn.body);
-    }
-
-    private Expr.Lambda getLambda(String kind, Token name) {
+    private Expr.Lambda function(String kind, Token anchor) {
         consume(LEFT_PAREN, "Expected '(' after " + kind + " name");
         List<Token> parameters = new ArrayList<>();
         if (!check(RIGHT_PAREN)) {
@@ -208,8 +204,8 @@ public class Parser {
         consume(LEFT_BRACE, "Expected '{' before " + kind + " body");
         List<Stmt> body = block();
         // TODO[error]: note: block() needs extra context to produce a better error message.
-        Expr.Lambda fn = new Expr.Lambda(name, parameters, body);
-        return fn;
+
+        return new Expr.Lambda(anchor, parameters, body);
     }
 
     private Expr expression() {
@@ -353,8 +349,7 @@ public class Parser {
     }
 
     private Expr anonymousFunction() {
-        function("anonymous function");
-        throw new UnsupportedOperationException();
+        return function("anonymous function", previous());
     }
 
     private Expr primary() {
