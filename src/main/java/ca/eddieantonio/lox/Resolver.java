@@ -17,8 +17,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     static private class BindingInfo {
+        Token name;
         boolean defined = false;
         boolean used = false;
+
+        BindingInfo(Token name) {
+            this.name = name;
+        }
 
         void markAsDefined() {
             defined = true;
@@ -53,9 +58,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private void endScope() {
         Map<String, BindingInfo> scope = scopes.peek();
-        for (Map.Entry<String, BindingInfo> entry : scope.entrySet()) {
-            if (!entry.getValue().used) {
-                Lox.error(0, "Variable went unused: " + entry.getKey());
+        for (BindingInfo binding : scope.values()) {
+            if (!binding.used) {
+                Lox.error(binding.name, "Variable went unused: " + binding.name.lexeme);
             }
         }
         scopes.pop();
@@ -71,7 +76,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             Lox.error(name,
         "Already defined a variable with this name in scope");
         }
-        scope.put(name.lexeme, new BindingInfo());
+        scope.put(name.lexeme, new BindingInfo(name));
     }
 
     private void define(Token name) {
