@@ -70,8 +70,8 @@ public class Environment {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    public void assignAt(int distance, Token name, Object value) {
-        ancestor(distance).setByName(name.lexeme, value);
+    public void assignAt(int distance, int index, Object value) {
+        ancestor(distance).setByIndex(index, value);
     }
 
     private boolean containsVariable(Token name) {

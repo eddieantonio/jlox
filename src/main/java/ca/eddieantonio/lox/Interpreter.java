@@ -139,7 +139,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
 
         Local local = locals.get(expr);
         if (local != null) {
-            environment.assignAt(local.distance, expr.name, value);
+            environment.assignAt(local.distance, local.index, value);
         } else {
             // Assign to a global variable
             environment.assign(expr.name, value);
