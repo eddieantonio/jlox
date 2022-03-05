@@ -7,7 +7,7 @@ import java.util.Stack;
 
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
-    private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+    private final Stack<Scope> scopes = new Stack<>();
     // NOTE: this kind of violates the single-responsibility principle
     private FunctionType currentFunction = FunctionType.NONE;
 
@@ -16,18 +16,35 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         FUNCTION
     }
 
+    private static class Scope {
+        Map<String, Boolean> bindings = new HashMap<>();
+        int currentLocal = 0;
+
+        public boolean containsKey(String key) {
+            return bindings.containsKey(key);
+        }
+
+        public void put(String key, boolean value) {
+            bindings.put(key, value);
+        }
+
+        public Boolean get(String key) {
+            return bindings.get(key);
+        }
+    }
+
     Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
     }
 
     // Temporary.
-    private Map<String, Boolean> currentScope() {
+    private Scope currentScope() {
         return scopes.peek();
     }
 
     // Temporary
-    private Map<String, Boolean> newScope() {
-        return new HashMap<>();
+    private Scope newScope() {
+        return new Scope();
     }
 
     void resolve(List<Stmt> statements) {
@@ -55,7 +72,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void declare(Token name) {
         if (scopes.isEmpty()) return;
 
-        Map<String, Boolean> scope = currentScope();
+        Scope scope = currentScope();
         if (scope.containsKey(name.lexeme)) {
             // TODO[error]: better error message (needs to point at previous definition)
             // TODO[error]: also, make it point out the scope.
