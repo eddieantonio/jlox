@@ -31,20 +31,18 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         public Boolean get(String key) {
             return bindings.get(key);
         }
+
+        public boolean defined(String key) {
+            return bindings.get(key) == Boolean.TRUE;
+        }
     }
 
     Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
     }
 
-    // Temporary.
     private Scope currentScope() {
         return scopes.peek();
-    }
-
-    // Temporary
-    private Scope newScope() {
-        return new Scope();
     }
 
     void resolve(List<Stmt> statements) {
@@ -62,7 +60,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void beginScope() {
-        scopes.push(newScope());
+        scopes.push(new Scope());
     }
 
     private void endScope() {
@@ -116,7 +114,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private boolean declaredButNotDefined(Token name) {
-        return currentScope().get(name.lexeme) == Boolean.FALSE;
+        return !currentScope().defined(name.lexeme);
     }
 
     @Override
