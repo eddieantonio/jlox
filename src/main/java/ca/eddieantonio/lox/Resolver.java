@@ -7,13 +7,26 @@ import java.util.Stack;
 
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
-    private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+    private final Stack<Map<String, BindingInfo>> scopes = new Stack<>();
     // NOTE: this kind of violates the single-responsibility principle
     private FunctionType currentFunction = FunctionType.NONE;
 
     private enum FunctionType {
         NONE,
         FUNCTION
+    }
+
+    static private class BindingInfo {
+        boolean defined = false;
+        boolean used = false;
+
+        void markAsDefined() {
+            defined = true;
+        }
+
+        void markAsUsed() {
+            used = true;
+        }
     }
 
     Resolver(Interpreter interpreter) {
@@ -35,38 +48,46 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void beginScope() {
-        scopes.push(new HashMap<String, Boolean>());
+        scopes.push(new HashMap<String, BindingInfo>());
     }
 
     private void endScope() {
+        Map<String, BindingInfo> scope = scopes.peek();
+        for (Map.Entry<String, BindingInfo> entry : scope.entrySet()) {
+            if (!entry.getValue().used) {
+                Lox.error(0, "Variable went unused: " + entry.getKey());
+            }
+        }
         scopes.pop();
     }
 
     private void declare(Token name) {
         if (scopes.isEmpty()) return;
 
-        Map<String, Boolean> scope = scopes.peek();
+        Map<String, BindingInfo> scope = scopes.peek();
         if (scope.containsKey(name.lexeme)) {
             // TODO[error]: better error message (needs to point at previous definition)
             // TODO[error]: also, make it point out the scope.
             Lox.error(name,
         "Already defined a variable with this name in scope");
         }
-        scope.put(name.lexeme, false);
+        scope.put(name.lexeme, new BindingInfo());
     }
 
     private void define(Token name) {
         if (scopes.isEmpty()) return;
-        scopes.peek().put(name.lexeme, true);
+        scopes.peek().get(name.lexeme).markAsDefined();
     }
 
     private void resolveLocal(Expr expr, Token name) {
         // Walk up through all the scopes STATICALLY, from the innermost,
         // up to the outermost scope.
         for (int i = scopes.size() - 1; i >= 0; i--) {
-            if (scopes.get(i).containsKey(name.lexeme)) {
+            BindingInfo binding = scopes.get(i).get(name.lexeme);
+            if (binding != null) {
                 // tell the interpreter how many scopes it has to walk back up.
                 interpreter.resolve(expr, scopes.size() - 1 - i);
+                binding.markAsUsed();
                 return;
             }
         }
@@ -89,7 +110,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private boolean declaredButNotDefined(Token name) {
-        return scopes.peek().get(name.lexeme) == Boolean.FALSE;
+        return !scopes.peek().get(name.lexeme).defined;
     }
 
     @Override
