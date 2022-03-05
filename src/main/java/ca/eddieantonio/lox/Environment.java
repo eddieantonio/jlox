@@ -7,6 +7,7 @@ public class Environment {
     final Environment enclosing;
     private final Map<String, Object> values = new HashMap<>();
 
+
     Environment() {
         enclosing = null;
     }
@@ -16,7 +17,7 @@ public class Environment {
     }
 
     Object get(Token name) {
-        if (values.containsKey(name.lexeme)) {
+        if (containsVariable(name)) {
             return values.get(name.lexeme);
         }
 
@@ -45,7 +46,7 @@ public class Environment {
     }
 
     public void assign(Token name, Object value) {
-        if (values.containsKey(name.lexeme)) {
+        if (containsVariable(name)) {
             values.put(name.lexeme, value);
             return;
         }
@@ -60,5 +61,9 @@ public class Environment {
 
     public void assignAt(int distance, Token name, Object value) {
         ancestor(distance).values.put(name.lexeme, value);
+    }
+
+    private boolean containsVariable(Token name) {
+        return values.containsKey(name.lexeme);
     }
 }
