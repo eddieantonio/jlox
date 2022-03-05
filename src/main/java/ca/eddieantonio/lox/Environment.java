@@ -27,7 +27,7 @@ public class Environment {
     }
 
     void define(String name, Object value) {
-        values.put(name, value);
+        setByName(name, value);
     }
 
     public Object getAt(int distance, String name) {
@@ -47,7 +47,7 @@ public class Environment {
 
     public void assign(Token name, Object value) {
         if (containsVariable(name)) {
-            values.put(name.lexeme, value);
+            setByName(name.lexeme, value);
             return;
         }
 
@@ -60,10 +60,14 @@ public class Environment {
     }
 
     public void assignAt(int distance, Token name, Object value) {
-        ancestor(distance).values.put(name.lexeme, value);
+        ancestor(distance).setByName(name.lexeme, value);
     }
 
     private boolean containsVariable(Token name) {
         return values.containsKey(name.lexeme);
+    }
+
+    void setByName(String name, Object value) {
+        values.put(name, value);
     }
 }
