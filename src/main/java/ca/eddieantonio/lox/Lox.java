@@ -66,6 +66,11 @@ public class Lox {
         // Stop if there were any errors during lexing/parsing.
         if (hadError) return;
 
+        // Static analysis time!
+        // Resolve all local variables:
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
+
         // Yay, interpret it!
         interpreter.interpret(statements);
     }
