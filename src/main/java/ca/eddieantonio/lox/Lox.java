@@ -71,6 +71,9 @@ public class Lox {
         Resolver resolver = new Resolver(interpreter);
         resolver.resolve(statements);
 
+        // Stop if there were any errors during static analysis.
+        if (hadError) return;
+
         // Yay, interpret it!
         interpreter.interpret(statements);
     }
