@@ -16,8 +16,15 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         FUNCTION
     }
 
+    private static class Binding {
+        boolean defined = false;
+        void setDefined() {
+            defined = true;
+        }
+    }
+
     private static class Scope {
-        Map<String, Boolean> bindings = new HashMap<>();
+        Map<String, Binding> bindings = new HashMap<>();
         int currentLocal = 0;
 
         public boolean containsKey(String key) {
@@ -25,13 +32,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         public void declare(String key) {
-            bindings.put(key, false);
+            bindings.put(key, new Binding());
         }
 
         public void define(String key) {
             assert bindings.containsKey(key);
-            bindings.put(key, true);
-            assert bindings.get(key) == Boolean.TRUE;
+            bindings.get(key).setDefined();
         }
 
         public boolean declared(String key) {
@@ -39,7 +45,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         public boolean defined(String key) {
-            return bindings.get(key) == Boolean.TRUE;
+            return bindings.get(key).defined;
         }
     }
 
