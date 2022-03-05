@@ -18,6 +18,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private static class Binding {
         boolean defined = false;
+        final int index;
+
+        Binding(int index) {
+            this.index = index;
+        }
+
         void setDefined() {
             defined = true;
         }
@@ -31,8 +37,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             return bindings.containsKey(key);
         }
 
+        public int index(String key) {
+            return bindings.get(key).index;
+        }
+
         public void declare(String key) {
-            bindings.put(key, new Binding());
+            bindings.put(key, new Binding(currentLocal));
+            currentLocal++;
         }
 
         public void define(String key) {
@@ -103,7 +114,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         for (int i = scopes.size() - 1; i >= 0; i--) {
             if (scopes.get(i).containsKey(name.lexeme)) {
                 // tell the interpreter how many scopes it has to walk back up.
-                interpreter.resolve(expr, scopes.size() - 1 - i);
+                interpreter.resolve(expr, scopes.size() - 1 - i, scopes.get(i).index(name.lexeme));
                 return;
             }
         }

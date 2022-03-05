@@ -10,8 +10,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
     private Environment environment = globals;
     final Map<Expr, Local> locals = new HashMap<>();
 
-    private static record Local(int distance) {
-    }
+    private record Local(int distance, int index) {}
 
     {
         globals.define("clock", new LoxCallable() {
@@ -46,8 +45,8 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         statement.accept(this);
     }
 
-    void resolve(Expr expr, int depth) {
-        locals.put(expr, new Local(depth));
+    void resolve(Expr expr, int depth, int index) {
+        locals.put(expr, new Local(depth, index));
     }
 
     void executeBlock(List<Stmt> statements, Environment environment) {
