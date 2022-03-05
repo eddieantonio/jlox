@@ -272,7 +272,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
     private Object lookUpVariable(Token name, Expr expr) {
         Local local = locals.get(expr);
         if (local != null) {
-            return environment.getAt(local.distance, name.lexeme);
+            return environment.getAt(local.distance, local.index);
         } else {
             return globals.get(name);
         }

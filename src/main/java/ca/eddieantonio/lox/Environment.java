@@ -41,8 +41,8 @@ public class Environment {
         names.put(name, index);
     }
 
-    public Object getAt(int distance, String name) {
-        return ancestor(distance).getByIndex(names.get(name));
+    public Object getAt(int distance, int index) {
+        return ancestor(distance).getByIndex(index);
     }
 
     public Environment ancestor(int distance) {
