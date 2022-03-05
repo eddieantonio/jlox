@@ -20,6 +20,16 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         this.interpreter = interpreter;
     }
 
+    // Temporary.
+    private Map<String, Boolean> currentScope() {
+        return scopes.peek();
+    }
+
+    // Temporary
+    private Map<String, Boolean> newScope() {
+        return new HashMap<>();
+    }
+
     void resolve(List<Stmt> statements) {
         for (Stmt statement : statements) {
             resolve(statement);
@@ -35,7 +45,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void beginScope() {
-        scopes.push(new HashMap<String, Boolean>());
+        scopes.push(newScope());
     }
 
     private void endScope() {
@@ -45,7 +55,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void declare(Token name) {
         if (scopes.isEmpty()) return;
 
-        Map<String, Boolean> scope = scopes.peek();
+        Map<String, Boolean> scope = currentScope();
         if (scope.containsKey(name.lexeme)) {
             // TODO[error]: better error message (needs to point at previous definition)
             // TODO[error]: also, make it point out the scope.
@@ -57,7 +67,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private void define(Token name) {
         if (scopes.isEmpty()) return;
-        scopes.peek().put(name.lexeme, true);
+        currentScope().put(name.lexeme, true);
     }
 
     private void resolveLocal(Expr expr, Token name) {
@@ -89,7 +99,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private boolean declaredButNotDefined(Token name) {
-        return scopes.peek().get(name.lexeme) == Boolean.FALSE;
+        return currentScope().get(name.lexeme) == Boolean.FALSE;
     }
 
     @Override
