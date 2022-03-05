@@ -35,9 +35,10 @@ public class Environment {
             return;
         }
 
-        int entryId = values.size();
-        names.put(name, entryId);
+        // Add a new name to the array.
+        int index = values.size();
         values.add(value);
+        names.put(name, index);
     }
 
     public Object getAt(int distance, String name) {
@@ -78,6 +79,10 @@ public class Environment {
     }
 
     void setByName(String name, Object value) {
-        values.set(names.get(name), value);
+        setByIndex(names.get(name), value);
+    }
+
+    void setByIndex(int index, Object value) {
+        values.set(index, value);
     }
 }
