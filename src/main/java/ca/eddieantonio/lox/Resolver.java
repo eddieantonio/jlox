@@ -24,12 +24,18 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             return bindings.containsKey(key);
         }
 
-        public void put(String key, boolean value) {
-            bindings.put(key, value);
+        public void declare(String key) {
+            bindings.put(key, false);
         }
 
-        public Boolean get(String key) {
-            return bindings.get(key);
+        public void define(String key) {
+            assert bindings.containsKey(key);
+            bindings.put(key, true);
+            assert bindings.get(key) == Boolean.TRUE;
+        }
+
+        public boolean declared(String key) {
+            return bindings.containsKey(key);
         }
 
         public boolean defined(String key) {
@@ -77,12 +83,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             Lox.error(name,
         "Already defined a variable with this name in scope");
         }
-        scope.put(name.lexeme, false);
+        scope.declare(name.lexeme);
     }
 
     private void define(Token name) {
         if (scopes.isEmpty()) return;
-        currentScope().put(name.lexeme, true);
+        currentScope().define(name.lexeme);
     }
 
     private void resolveLocal(Expr expr, Token name) {
@@ -114,7 +120,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private boolean declaredButNotDefined(Token name) {
-        return !currentScope().defined(name.lexeme);
+        return currentScope().declared(name.lexeme) && !currentScope().defined(name.lexeme);
     }
 
     @Override
