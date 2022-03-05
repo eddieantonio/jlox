@@ -1,11 +1,14 @@
 package ca.eddieantonio.lox;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Environment {
     final Environment enclosing;
-    private final Map<String, Object> values = new HashMap<>();
+    private final Map<String, Integer> names = new HashMap<>();
+    private final List<Object> values = new ArrayList<>();
 
 
     Environment() {
@@ -18,7 +21,7 @@ public class Environment {
 
     Object get(Token name) {
         if (containsVariable(name)) {
-            return values.get(name.lexeme);
+            return values.get(names.get(name.lexeme));
         }
 
         if (this.enclosing != null) return this.enclosing.get(name);
@@ -27,11 +30,18 @@ public class Environment {
     }
 
     void define(String name, Object value) {
-        setByName(name, value);
+        if (names.containsKey(name)) {
+            setByName(name, value);
+            return;
+        }
+
+        int entryId = values.size();
+        names.put(name, entryId);
+        values.add(value);
     }
 
     public Object getAt(int distance, String name) {
-        return ancestor(distance).values.get(name);
+        return ancestor(distance).values.get(names.get(name));
     }
 
     public Environment ancestor(int distance) {
@@ -64,10 +74,10 @@ public class Environment {
     }
 
     private boolean containsVariable(Token name) {
-        return values.containsKey(name.lexeme);
+        return names.containsKey(name.lexeme);
     }
 
     void setByName(String name, Object value) {
-        values.put(name, value);
+        values.set(names.get(name), value);
     }
 }
