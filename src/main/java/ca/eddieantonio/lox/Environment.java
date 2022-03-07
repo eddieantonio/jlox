@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Environment {
+public class Environment implements Namespace {
     final Environment enclosing;
     private final Map<String, Integer> names = new HashMap<>();
     private final List<Object> values = new ArrayList<>();
@@ -19,7 +19,8 @@ public class Environment {
         this.enclosing = enclosing;
     }
 
-    Object get(Token name) {
+    @Override
+    public Object get(Token name) {
         if (containsVariable(name)) {
             return values.get(names.get(name.lexeme));
         }
@@ -29,7 +30,8 @@ public class Environment {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    void define(String name, Object value) {
+    @Override
+    public void define(String name, Object value) {
         if (names.containsKey(name)) {
             setByName(name, value);
             return;
@@ -56,6 +58,7 @@ public class Environment {
         return environment;
     }
 
+    @Override
     public void assign(Token name, Object value) {
         if (containsVariable(name)) {
             setByName(name.lexeme, value);
