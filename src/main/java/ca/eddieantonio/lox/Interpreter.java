@@ -342,9 +342,4 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
 
         return object.toString();
     }
-
-    private Namespace activeNamespace() {
-        if (this.environment == null) return globals;
-        return this.environment;
-    }
 }
