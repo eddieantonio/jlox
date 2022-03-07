@@ -176,6 +176,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             resolve(stmt.initializer);
         }
         define(stmt.name);
+        resolveLocal(stmt.name);
         return null;
     }
 
@@ -248,6 +249,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         declare(stmt.name);
         define(stmt.name);
         resolveFunction(stmt, FunctionType.FUNCTION);
+        resolveLocal(stmt.name);
         return null;
     }
 

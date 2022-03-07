@@ -5,10 +5,12 @@ import java.util.List;
 public class LoxFunction implements LoxCallable {
     private final Stmt.Function declaration;
     private final IndexedNamespace closure;
+    private final int numberOfLocals;
 
-    LoxFunction(Stmt.Function declaration, IndexedNamespace closure) {
+    LoxFunction(Stmt.Function declaration, IndexedNamespace closure, int numberOfLocals) {
         this.closure = closure;
         this.declaration = declaration;
+        this.numberOfLocals = numberOfLocals;
     }
 
     @Override
@@ -19,9 +21,9 @@ public class LoxFunction implements LoxCallable {
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
         assert arguments.size() == arity();
-        IndexedEnvironment environment = new IndexedEnvironment(closure, arguments.size());
+        IndexedEnvironment environment = new IndexedEnvironment(closure, numberOfLocals);
         for (int i = 0; i < arity(); i++) {
-            environment.define(declaration.params.get(i).lexeme, arguments.get(i));
+            environment.setByIndex(i, arguments.get(i));
         }
 
         try {

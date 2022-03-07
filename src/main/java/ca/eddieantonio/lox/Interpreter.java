@@ -95,8 +95,15 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        LoxFunction function = new LoxFunction(stmt, environment);
-        environment.define(stmt.name.lexeme, function);
+        LoxFunction function = new LoxFunction(stmt, environment, localsRequired.get(stmt));
+
+        Local local = locals.get(stmt.name);
+        if (local != null) {
+            assert environment != null;
+            environment.assignAt(local.distance, local.index, function);
+        } else {
+            globals.define(stmt.name.lexeme, function);
+        }
         return null;
     }
 
@@ -117,7 +124,13 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
             value = evaluate(stmt.initializer);
         }
 
-        activeNamespace().define(stmt.name.lexeme, value);
+        Local local = locals.get(stmt.name);
+        if (local != null) {
+            assert environment != null;
+            environment.assignAt(local.distance, local.index, value);
+        } else {
+            globals.define(stmt.name.lexeme, value);
+        }
         return null;
     }
 

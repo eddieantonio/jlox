@@ -1,16 +1,11 @@
 package ca.eddieantonio.lox;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Implements a fast, array-backed variable storage.
  */
 public class IndexedEnvironment implements IndexedNamespace {
     final IndexedNamespace enclosing;
-    private final Map<String, Integer> names = new HashMap<>();
     private final Object[] values;
-    private int nameIndex = 0;
 
     IndexedEnvironment(IndexedNamespace enclosing, int size) {
         this.enclosing = enclosing;
@@ -19,26 +14,12 @@ public class IndexedEnvironment implements IndexedNamespace {
 
     @Override
     public Object get(Token name) {
-        if (containsVariable(name)) {
-            return values[names.get(name.lexeme)];
-        }
-
-        if (this.enclosing != null) return this.enclosing.get(name);
-
-        throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+        throw new AssertionError("Tried to get local variable by name: " + name.lexeme);
     }
 
     @Override
     public void define(String name, Object value) {
-        if (names.containsKey(name)) {
-            setByName(name, value);
-            return;
-        }
-
-        // Add a new name to the array.
-        values[nameIndex] = value;
-        names.put(name, nameIndex);
-        nameIndex++;
+        throw new AssertionError("Should never attempt to define an indexed local variable.");
     }
 
     @Override
@@ -65,30 +46,12 @@ public class IndexedEnvironment implements IndexedNamespace {
 
     @Override
     public void assign(Token name, Object value) {
-        if (containsVariable(name)) {
-            setByName(name.lexeme, value);
-            return;
-        }
-
-        if (this.enclosing != null) {
-            this.enclosing.assign(name, value);
-            return;
-        }
-
-        throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+        throw new AssertionError("Tried to assign local variable by name: " + name.lexeme);
     }
 
     @Override
     public void assignAt(int distance, int index, Object value) {
         ancestor(distance).setByIndex(index, value);
-    }
-
-    private boolean containsVariable(Token name) {
-        return names.containsKey(name.lexeme);
-    }
-
-    void setByName(String name, Object value) {
-        setByIndex(names.get(name), value);
     }
 
     @Override
