@@ -8,7 +8,7 @@ import java.util.Map;
 public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
     final Environment globals = new Environment();
     private Environment environment = globals;
-    final Map<Expr, Local> locals = new HashMap<>();
+    final Map<Token, Local> locals = new HashMap<>();
 
     private record Local(int distance, int index) {}
 
@@ -45,8 +45,8 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         statement.accept(this);
     }
 
-    void resolve(Expr expr, int depth, int index) {
-        locals.put(expr, new Local(depth, index));
+    void resolve(Token token, int depth, int index) {
+        locals.put(token, new Local(depth, index));
     }
 
     void executeBlock(List<Stmt> statements, Environment environment) {
@@ -137,7 +137,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
 
-        Local local = locals.get(expr);
+        Local local = locals.get(expr.name);
         if (local != null) {
             environment.assignAt(local.distance, local.index, value);
         } else {
@@ -266,11 +266,11 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
 
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
-        return lookUpVariable(expr.name, expr);
+        return lookUpVariable(expr.name);
     }
 
-    private Object lookUpVariable(Token name, Expr expr) {
-        Local local = locals.get(expr);
+    private Object lookUpVariable(Token name) {
+        Local local = locals.get(name);
         if (local != null) {
             return environment.getAt(local.distance, local.index);
         } else {

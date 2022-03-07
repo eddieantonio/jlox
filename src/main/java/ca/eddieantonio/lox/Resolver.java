@@ -108,13 +108,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         currentScope().define(name.lexeme);
     }
 
-    private void resolveLocal(Expr expr, Token name) {
+    private void resolveLocal(Token name) {
         // Walk up through all the scopes STATICALLY, from the innermost,
         // up to the outermost scope.
         for (int i = scopes.size() - 1; i >= 0; i--) {
             if (scopes.get(i).containsKey(name.lexeme)) {
                 // tell the interpreter how many scopes it has to walk back up.
-                interpreter.resolve(expr, scopes.size() - 1 - i, scopes.get(i).index(name.lexeme));
+                interpreter.resolve(name, scopes.size() - 1 - i, scopes.get(i).index(name.lexeme));
                 return;
             }
         }
@@ -167,7 +167,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     @Override
     public Void visitAssignExpr(Expr.Assign expr) {
         resolve(expr.value);
-        resolveLocal(expr, expr.name);
+        resolveLocal(expr.name);
         return null;
     }
 
@@ -222,7 +222,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
                     "Can't read local variable in its own initializer");
         }
 
-        resolveLocal(expr, expr.name);
+        resolveLocal(expr.name);
         return null;
     }
 
