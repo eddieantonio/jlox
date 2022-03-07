@@ -10,6 +10,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Stack<Scope> scopes = new Stack<>();
     // NOTE: this kind of violates the single-responsibility principle
     private FunctionType currentFunction = FunctionType.NONE;
+    private Stmt currentBlock;
 
     private enum FunctionType {
         NONE,
@@ -30,8 +31,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private static class Scope {
-        Map<String, Binding> bindings = new HashMap<>();
+        final Stmt _block;
+        final Map<String, Binding> bindings = new HashMap<>();
         int currentLocal = 0;
+
+        Scope(Stmt block) {
+            _block = block;
+        }
 
         public boolean containsKey(String key) {
             return bindings.containsKey(key);
@@ -58,6 +64,14 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         public boolean defined(String key) {
             return bindings.get(key).defined;
         }
+
+        public int size() {
+            return currentLocal;
+        }
+
+        public Stmt block() {
+            return _block;
+        }
     }
 
     Resolver(Interpreter interpreter) {
@@ -82,12 +96,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         expr.accept(this);
     }
 
-    private void beginScope() {
-        scopes.push(new Scope());
+    private void beginScope(Stmt block) {
+        scopes.push(new Scope(block));
     }
 
     private void endScope() {
-        scopes.pop();
+        Scope current = scopes.pop();
+        interpreter.informScope(current.block(), current.size());
     }
 
     private void declare(Token name) {
@@ -124,7 +139,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void resolveFunction(Stmt.Function function, FunctionType type) {
         FunctionType enclosingFunction = currentFunction;
         currentFunction = type;
-        beginScope();
+        beginScope(function);
 
         for (Token param : function.params) {
             declare(param);
@@ -142,7 +157,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitBlockStmt(Stmt.Block stmt) {
-        beginScope();
+        beginScope(stmt);
         resolve(stmt.statements);
         endScope();
         return null;

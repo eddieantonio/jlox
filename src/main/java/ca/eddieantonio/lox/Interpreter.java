@@ -9,6 +9,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
     final Namespace globals = new GlobalNamespace();
     private IndexedNamespace environment = null;
     final Map<Token, Local> locals = new HashMap<>();
+    final Map<Stmt, Integer> localsRequired = new HashMap<>();
 
     private record Local(int distance, int index) {}
 
@@ -45,8 +46,18 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         statement.accept(this);
     }
 
+    /**
+     * Tell the interpreter exactly how to resolve a variable.
+     */
     void resolve(Token token, int depth, int index) {
         locals.put(token, new Local(depth, index));
+    }
+
+    /**
+     * Tell the interpreter exactly how many locals are required for the given block.
+     */
+    void informScope(Stmt stmt, int count) {
+        localsRequired.put(stmt, count);
     }
 
     void executeBlock(List<Stmt> statements, IndexedNamespace environment) {
