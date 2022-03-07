@@ -18,8 +18,8 @@ public class LoxFunction implements LoxCallable {
 
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
-        IndexedEnvironment environment = new IndexedEnvironment(closure);
         assert arguments.size() == arity();
+        IndexedEnvironment environment = new IndexedEnvironment(closure, arguments.size());
         for (int i = 0; i < arity(); i++) {
             environment.define(declaration.params.get(i).lexeme, arguments.get(i));
         }

@@ -84,7 +84,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
     }
 
     private IndexedNamespace newEnvironmentForBlock(Stmt.Block stmt) {
-        return new IndexedEnvironment(environment);
+        return new IndexedEnvironment(environment, localsRequired.get(stmt));
     }
 
     @Override

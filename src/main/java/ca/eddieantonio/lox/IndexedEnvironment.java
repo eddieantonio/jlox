@@ -1,8 +1,6 @@
 package ca.eddieantonio.lox;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,16 +9,18 @@ import java.util.Map;
 public class IndexedEnvironment implements IndexedNamespace {
     final IndexedNamespace enclosing;
     private final Map<String, Integer> names = new HashMap<>();
-    private final List<Object> values = new ArrayList<>();
+    private final Object[] values;
+    private int nameIndex = 0;
 
-    IndexedEnvironment(IndexedNamespace enclosing) {
+    IndexedEnvironment(IndexedNamespace enclosing, int size) {
         this.enclosing = enclosing;
+        this.values = new Object[size];
     }
 
     @Override
     public Object get(Token name) {
         if (containsVariable(name)) {
-            return values.get(names.get(name.lexeme));
+            return values[names.get(name.lexeme)];
         }
 
         if (this.enclosing != null) return this.enclosing.get(name);
@@ -36,9 +36,9 @@ public class IndexedEnvironment implements IndexedNamespace {
         }
 
         // Add a new name to the array.
-        int index = values.size();
-        values.add(value);
-        names.put(name, index);
+        values[nameIndex] = value;
+        names.put(name, nameIndex);
+        nameIndex++;
     }
 
     @Override
@@ -93,11 +93,11 @@ public class IndexedEnvironment implements IndexedNamespace {
 
     @Override
     public void setByIndex(int index, Object value) {
-        values.set(index, value);
+        values[index] = value;
     }
 
     @Override
     public Object getByIndex(int index) {
-        return values.get(index);
+        return values[index];
     }
 }
