@@ -5,17 +5,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Environment implements Namespace {
-    final Environment enclosing;
+/**
+ * Implements a fast, array-backed variable storage.
+ */
+public class IndexedEnvironment implements IndexedNamespace {
+    final IndexedNamespace enclosing;
     private final Map<String, Integer> names = new HashMap<>();
     private final List<Object> values = new ArrayList<>();
 
-
-    Environment() {
-        enclosing = null;
-    }
-
-    Environment(Environment enclosing) {
+    IndexedEnvironment(IndexedNamespace enclosing) {
         this.enclosing = enclosing;
     }
 
@@ -43,19 +41,26 @@ public class Environment implements Namespace {
         names.put(name, index);
     }
 
+    @Override
     public Object getAt(int distance, int index) {
         return ancestor(distance).getByIndex(index);
     }
 
-    public Environment ancestor(int distance) {
-        Environment environment = this;
+    @Override
+    public IndexedNamespace ancestor(int distance) {
+        IndexedNamespace environment = this;
         for (int i = 0; i < distance; i++) {
-            environment = environment.enclosing;
+            environment = environment.parent();
             // If this assert fails, that means there's a bug in the variable resolution logic.
             assert environment != null;
         }
 
         return environment;
+    }
+
+    @Override
+    public IndexedNamespace parent() {
+        return this.enclosing;
     }
 
     @Override
@@ -73,6 +78,7 @@ public class Environment implements Namespace {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
+    @Override
     public void assignAt(int distance, int index, Object value) {
         ancestor(distance).setByIndex(index, value);
     }
@@ -85,11 +91,13 @@ public class Environment implements Namespace {
         setByIndex(names.get(name), value);
     }
 
-    void setByIndex(int index, Object value) {
+    @Override
+    public void setByIndex(int index, Object value) {
         values.set(index, value);
     }
 
-    Object getByIndex(int index) {
+    @Override
+    public Object getByIndex(int index) {
         return values.get(index);
     }
 }

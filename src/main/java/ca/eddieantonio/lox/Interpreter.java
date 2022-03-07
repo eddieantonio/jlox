@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
-    final Environment globals = new Environment();
-    private Environment environment = globals;
+    final Namespace globals = new GlobalNamespace();
+    private IndexedNamespace environment = null;
     final Map<Token, Local> locals = new HashMap<>();
 
     private record Local(int distance, int index) {}
@@ -49,15 +49,15 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         locals.put(token, new Local(depth, index));
     }
 
-    void executeBlock(List<Stmt> statements, Environment environment) {
-        Environment previous = this.environment;
+    void executeBlock(List<Stmt> statements, IndexedNamespace environment) {
+        IndexedNamespace previous = this.environment;
         try {
             this.environment = environment;
             for (Stmt statement : statements) {
                 execute(statement);
             }
         } finally {
-            assert environment.enclosing == previous;
+            assert environment.parent() == previous;
             this.environment = previous;
         }
     }
@@ -72,8 +72,8 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         return null;
     }
 
-    private Environment newEnvironmentForBlock(Stmt.Block stmt) {
-        return new Environment(environment);
+    private IndexedNamespace newEnvironmentForBlock(Stmt.Block stmt) {
+        return new IndexedEnvironment(environment);
     }
 
     @Override
@@ -106,7 +106,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
             value = evaluate(stmt.initializer);
         }
 
-        environment.define(stmt.name.lexeme, value);
+        activeNamespace().define(stmt.name.lexeme, value);
         return null;
     }
 
@@ -139,10 +139,12 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
 
         Local local = locals.get(expr.name);
         if (local != null) {
+            assert environment != null;
             environment.assignAt(local.distance, local.index, value);
         } else {
             // Assign to a global variable
-            environment.assign(expr.name, value);
+            assert environment == null;
+            globals.assign(expr.name, value);
         }
 
         return value;
@@ -315,5 +317,10 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
         }
 
         return object.toString();
+    }
+
+    private Namespace activeNamespace() {
+        if (this.environment == null) return globals;
+        return this.environment;
     }
 }
