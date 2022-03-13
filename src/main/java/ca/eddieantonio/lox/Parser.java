@@ -31,6 +31,7 @@ public class Parser {
 
     private Stmt declaration() {
         try {
+            if (match(CLASS)) return classDeclaration();
             if (match(FUN)) return function("function");
             if (match(VAR)) return varDeclaration();
             return statement();
@@ -157,6 +158,24 @@ public class Parser {
         return statements;
     }
 
+    private Stmt classDeclaration() {
+        // TODO[error]: better error message
+        Token name = consume(IDENTIFIER, "Expected the class name after 'class'");
+
+        // TODO[error]: better error message
+        consume(LEFT_BRACE, "Expected an open brace after starting a class");
+
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            // As an error message researcher, I **KNOW** the parser is capable of going off the rails here!
+            methods.add(function("method"));
+        }
+        // TODO[error]: better error message:
+        consume(RIGHT_BRACE, "Expected open brace after starting a class");
+
+        return new Stmt.Class(name, methods);
+    }
+
     private Stmt varDeclaration() {
         Token name = consume(IDENTIFIER, "Expect variable name");
 
@@ -216,6 +235,9 @@ public class Parser {
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable) expr).name;
                 return new Expr.Assign(name, value);
+            } else if (expr instanceof Expr.Get get) {
+                // Transform that last field .get into a set:
+                return new Expr.Set(get.object, get.name, value);
             }
 
             // TODO[error]: better error message:
@@ -312,6 +334,10 @@ public class Parser {
         while (true) {
             if (match(LEFT_PAREN)) {
                 expr = finishCall(expr);
+            } else if (match(DOT)) {
+                // TODO[error]: Better error message
+                Token name = consume(IDENTIFIER, "Expected property name after the dot");
+                expr = new Expr.Get(expr, name);
             } else {
                 break;
             }
@@ -347,6 +373,8 @@ public class Parser {
             // The scanner would have already parsed this literal for us.
             return new Expr.Literal(previous().literal);
         }
+
+        if (match(THIS)) return new Expr.This(previous());
 
         if (match(IDENTIFIER)) {
             return new Expr.Variable(previous());
