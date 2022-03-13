@@ -1,7 +1,6 @@
 package ca.eddieantonio.lox;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class LoxInstance {
@@ -30,7 +29,7 @@ public class LoxInstance {
 
     @Override
     public String toString() {
-        return "<instance of '" + klass.name + "'>";
+        return "<instance of '" + klass.name() + "'>";
     }
 
 }

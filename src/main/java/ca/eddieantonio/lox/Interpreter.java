@@ -81,7 +81,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void> {
             methods.put(method.name.lexeme, function);
         }
 
-        LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
+        LoxClass klass = new UserDefinedClass(stmt.name.lexeme, methods);
         environment.assign(stmt.name, klass);
         return null;
     }
