@@ -167,8 +167,13 @@ public class Parser {
 
         List<Stmt.Function> methods = new ArrayList<>();
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            String kind = "method";
+            if (match(CLASS)) {
+                kind = "static method";
+            }
+
             // As an error message researcher, I **KNOW** the parser is capable of going off the rails here!
-            methods.add(function("method"));
+            methods.add(function(kind));
         }
         // TODO[error]: better error message:
         consume(RIGHT_BRACE, "Expected open brace after starting a class");
@@ -218,7 +223,7 @@ public class Parser {
         List<Stmt> body = block();
         // TODO[error]: note: block() needs extra context to produce a better error message.
 
-        return new Stmt.Function(name, parameters, body);
+        return new Stmt.Function(name, kind.equals("static method"), parameters, body);
     }
 
     private Expr expression() {
