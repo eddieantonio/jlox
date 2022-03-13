@@ -3,17 +3,38 @@ package ca.eddieantonio.lox;
 import java.util.List;
 import java.util.Map;
 
-public class UserDefinedClass implements LoxCallable, LoxClass {
+public class UserDefinedClass extends LoxInstance implements LoxCallable, LoxClass {
     final String name;
     private final Map<String, LoxFunction> methods;
 
-    public UserDefinedClass(String name, Map<String, LoxFunction> methods) {
+    public UserDefinedClass(String name, Map<String, LoxFunction> methods, Map<String, LoxFunction> staticMethods) {
+        super(new LoxClass() {
+            @Override
+            public String name() {
+                return "<metaclass for '" + name + "'>";
+            }
+
+            @Override
+            public LoxFunction findMethod(String name) {
+                if (staticMethods.containsKey(name)) {
+                    return staticMethods.get(name);
+                };
+
+                return null;
+            }
+        });
+
         this.name = name;
         this.methods = methods;
     }
 
     @Override
     public LoxFunction findMethod(String name) {
+        LoxFunction staticMethod = klass.findMethod(name);
+        if (staticMethod != null) {
+            return staticMethod;
+        }
+
         if (methods.containsKey(name)) {
             return methods.get(name);
         }
