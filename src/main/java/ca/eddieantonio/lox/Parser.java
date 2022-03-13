@@ -32,7 +32,7 @@ public class Parser {
     private Stmt declaration() {
         try {
             if (match(CLASS)) return classDeclaration();
-            if (match(FUN)) return function("function");
+            if (match(FUN)) return function(FunctionKind.FUNCTION);
             if (match(VAR)) return varDeclaration();
             return statement();
         } catch (ParseError error) {
@@ -168,7 +168,7 @@ public class Parser {
         List<Stmt.Function> methods = new ArrayList<>();
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
             // As an error message researcher, I **KNOW** the parser is capable of going off the rails here!
-            methods.add(function("method"));
+            methods.add(function(FunctionKind.METHOD));
         }
         // TODO[error]: better error message:
         consume(RIGHT_BRACE, "Expected open brace after starting a class");
@@ -194,9 +194,31 @@ public class Parser {
         return new Stmt.Expression(value);
     }
 
-    private Stmt.Function function(String kind) {
+    private Stmt.Function function(FunctionKind kind) {
         // TODO[error]: better error message:
         Token name = consume(IDENTIFIER, "Expected " + kind + " name");
+
+        // Lookahead to see if we're trying to parse a getter:
+        if (!check(LEFT_PAREN) && kind == FunctionKind.METHOD) {
+            kind = FunctionKind.GETTER;
+        };
+
+        List<Token> parameters;
+        if (kind.hasFormalParameters()) {
+            parameters = formalParameters(kind);
+        } else {
+            parameters = new ArrayList<>();
+        }
+
+        // TODO[error]: better error message:
+        consume(LEFT_BRACE, "Expected '{' before " + kind + " body");
+        List<Stmt> body = block();
+        // TODO[error]: note: block() needs extra context to produce a better error message.
+
+        return new Stmt.Function(name, parameters, body);
+    }
+
+    private List<Token> formalParameters(FunctionKind kind) {
         consume(LEFT_PAREN, "Expected '(' after " + kind + " name");
         List<Token> parameters = new ArrayList<>();
         if (!check(RIGHT_PAREN)) {
@@ -213,12 +235,7 @@ public class Parser {
         // c.f., Marceau et al. 2011, "Mind Your Language" about parameter vs. argument
         consume(RIGHT_PAREN, "Expected ')' after parameter list");
 
-        // TODO[error]: better error message:
-        consume(LEFT_BRACE, "Expected '{' before " + kind + " body");
-        List<Stmt> body = block();
-        // TODO[error]: note: block() needs extra context to produce a better error message.
-
-        return new Stmt.Function(name, parameters, body);
+        return parameters;
     }
 
     private Expr expression() {
