@@ -1,5 +1,6 @@
 package ca.eddieantonio.lox;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,10 +13,13 @@ public class LoxInstance {
         this.klass = klass;
     }
 
-    Object get(Token name) {
+    Object get(Token name, Interpreter interpreter) {
         if (fields.containsKey(name.lexeme)) {
             return fields.get(name.lexeme);
         }
+
+        LoxFunction getter = klass.findGetter(name.lexeme);
+        if (getter != null) return getter.bind(this).call(interpreter, new ArrayList<>());
 
         LoxFunction method = klass.findMethod(name.lexeme);
         if (method != null) return method.bind(this);

@@ -215,7 +215,7 @@ public class Parser {
         List<Stmt> body = block();
         // TODO[error]: note: block() needs extra context to produce a better error message.
 
-        return new Stmt.Function(name, parameters, body);
+        return new Stmt.Function(name, kind, parameters, body);
     }
 
     private List<Token> formalParameters(FunctionKind kind) {
