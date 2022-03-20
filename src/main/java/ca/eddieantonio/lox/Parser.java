@@ -162,6 +162,13 @@ public class Parser {
         // TODO[error]: better error message
         Token name = consume(IDENTIFIER, "Expected the class name after 'class'");
 
+        Expr.Variable superclass = null;
+        if (match(LESS)) {
+            // TODO[error]: better error message
+            consume(IDENTIFIER, "Expected superclass name after '<'");
+            superclass = new Expr.Variable(previous());
+        }
+
         // TODO[error]: better error message
         consume(LEFT_BRACE, "Expected an open brace after starting a class");
 
@@ -173,7 +180,7 @@ public class Parser {
         // TODO[error]: better error message:
         consume(RIGHT_BRACE, "Expected open brace after starting a class");
 
-        return new Stmt.Class(name, methods);
+        return new Stmt.Class(name, superclass, methods);
     }
 
     private Stmt varDeclaration() {
@@ -372,6 +379,15 @@ public class Parser {
         if (match(NUMBER, STRING)) {
             // The scanner would have already parsed this literal for us.
             return new Expr.Literal(previous().literal);
+        }
+
+        if (match(SUPER)) {
+            Token keyword = previous();
+            // TODO[error]: better error message
+            consume(DOT, "Expected '.' after super");
+            // TODO[error]: better error message
+            Token name = consume(IDENTIFIER, "Expected a method name after 'super.'");
+            return new Expr.Super(keyword, name);
         }
 
         if (match(THIS)) return new Expr.This(previous());

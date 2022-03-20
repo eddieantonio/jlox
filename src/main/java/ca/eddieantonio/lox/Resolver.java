@@ -22,7 +22,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private enum ClassType {
         NONE,
-        CLASS
+        CLASS,
+        SUBCLASS
     }
 
     Resolver(Interpreter interpreter) {
@@ -116,6 +117,21 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
         declare(stmt.name);
         define(stmt.name);
+        if (classInheritsFromItself(stmt)) {
+            // TODO[error]: better error message
+            Lox.error(stmt.superclass.name, "A class cannot inherit from itself.");
+        }
+
+        if (stmt.superclass != null) {
+            resolve(stmt.superclass);
+        }
+
+        if (stmt.superclass != null) {
+            currentClass = ClassType.SUBCLASS;
+            beginScope();
+            // Pretend all methods close around 'super'
+            scopes.peek().put("super", true);
+        }
 
         beginScope();
         // Pretend all methods close around 'this', as if it's a variable.
@@ -131,6 +147,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         endScope();
+
+        if (stmt.superclass != null) endScope();
 
         currentClass = enclosingClass;
         return null;
@@ -206,6 +224,25 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitSetExpr(Expr.Set expr) {
         resolve(expr.value);
         resolve(expr.object);
+        return null;
+    }
+
+    @Override
+    public Void visitSuperExpr(Expr.Super expr) {
+        if (currentClass == ClassType.NONE) {
+            // TODO[error]: better error message
+            // TODO[research]:
+            //  - taxonomy of errors: think, this is using a language feature outside of its correct context.
+            //    what other errors operate like that?
+            Lox.error(expr.keyword, "Tried using super outside of a class");
+            return null;
+        } else if (currentClass == ClassType.CLASS) {
+            // TODO[error]: better error message
+            Lox.error(expr.keyword, "Tried using super, but this class does inherit from a super class");
+            return null;
+        }
+
+        resolveLocal(expr, expr.keyword);
         return null;
     }
 
@@ -286,5 +323,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         resolve(stmt.condition);
         resolve(stmt.body);
         return null;
+    }
+
+    private boolean classInheritsFromItself(Stmt.Class stmt) {
+        return stmt.superclass != null && stmt.name.lexeme.equals(stmt.superclass.name.lexeme);
     }
 }
